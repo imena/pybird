@@ -92,7 +92,7 @@ class PyBird:
 
         for line in line_iterator:
             line = line.strip()
-            self.log.debug("PyBird: parse status: %s", line)
+            self.log.debug(f"PyBird: parse status: {line}")
             (field_number, line) = self._extract_field_number(line)
 
             if field_number in self.ignored_field_numbers:
@@ -115,16 +115,16 @@ class PyBird:
                     data["hostname"] = line.split(" is ")[1]
                     line = next(line_iterator)
                 # skip current server time
-                self.log.debug("PyBird: parse status: %s", line)
+                self.log.debug(f"PyBird: parse status: {line}")
 
                 line = next(line_iterator)
-                self.log.debug("PyBird: parse status: %s", line)
+                self.log.debug(f"PyBird: parse status: {line}")
                 data["last_reboot"] = self._parse_router_status_line(
                     line, parse_date=True
                 )
 
                 line = next(line_iterator)
-                self.log.debug("PyBird: parse status: %s", line)
+                self.log.debug(f"PyBird: parse status: {line}")
                 data["last_reconfiguration"] = self._parse_router_status_line(
                     line, parse_date=True
                 )
@@ -151,7 +151,7 @@ class PyBird:
         """
 
         for line in data.splitlines():
-            self.log.debug("PyBird: parse configure: %s", line)
+            self.log.debug(f"PyBird: parse configure: {line}")
             fieldno, line = self._extract_field_number(line)
 
             if fieldno == 2:
@@ -245,9 +245,7 @@ class PyBird:
         filters - i.e. this includes routes which were not accepted
         """
         clean_peer_name = self._clean_input(peer_name)
-        query = "show route table T_{} all protocol {}".format(
-            clean_peer_name, clean_peer_name
-        )
+        query = f"show route table T_{clean_peer_name} all protocol {clean_peer_name}"
         data = self._send_query(query)
         return self._parse_route_data(data)
 
@@ -259,9 +257,7 @@ class PyBird:
         Get prefixes exported TO a specific peer
         """
         clean_peer_name = self._clean_input(peer_name)
-        query = "show route all table T_{} export {}".format(
-            clean_peer_name, clean_peer_name
-        )
+        query = f"show route all table T_{clean_peer_name} export {clean_peer_name}"
         data = self._send_query(query)
         if not self.socket_file:
             return data
@@ -272,7 +268,8 @@ class PyBird:
         Get prefixes announced by a specific peer, which were also
         accepted by the filters
         """
-        query = "show route all protocol %s" % self._clean_input(peer_name)
+        clean_peer_name = self._clean_input(peer_name)
+        query = f"show route all protocol {clean_peer_name}"
         data = self._send_query(query)
         return self._parse_route_data(data)
 
@@ -295,9 +292,9 @@ class PyBird:
         """
         Get route-info for specified prefix
         """
-        query = "show route for %s all" % prefix
+        query = f"show route for {prefix} all"
         if peer_name is not None:
-            query += " protocol %s" % peer_name
+            query += f" protocol {peer_name}"
         data = self._send_query(query)
         if not self.socket_file:
             return data
@@ -322,12 +319,12 @@ class PyBird:
 
         route_summary = None
 
-        self.log.debug("PyBird: parse route data: lines=%d", len(lines))
+        self.log.debug(f"PyBird: parse route data: lines={len(lines)}")
         line_counter = -1
         while line_counter < len(lines) - 1:
             line_counter += 1
             line = lines[line_counter].strip()
-            self.log.debug("PyBird: parse route data: %s", line)
+            self.log.debug(f"PyBird: parse route data: {line}")
             (field_number, line) = self._extract_field_number(line)
 
             if field_number in self.ignored_field_numbers:
@@ -355,7 +352,7 @@ class PyBird:
                     route_detail_raw.append(line)
                     line_counter += 1
                     line = lines[line_counter]
-                    self.log.debug("PyBird: parse route data: %s", line)
+                    self.log.debug(f"PyBird: parse route data: {line}")
                 # this loop will have walked a bit too far, correct it
                 line_counter -= 1
 
@@ -412,7 +409,7 @@ class PyBird:
 
         for line in lines:
             line = line.strip()
-            self.log.debug("PyBird: parse route details: %s", line)
+            self.log.debug(f"PyBird: parse route details: {line}")
             # remove 'BGP.'
             line = line[4:]
             parts = line.split(": ")
@@ -445,7 +442,8 @@ class PyBird:
         as a dict. If the peer is not found, returns a zero length array.
         """
         if peer_name:
-            query = 'show protocols all %s' % self._clean_input(peer_name)
+            clean_peer_name = self._clean_input(peer_name)
+            query = f"show protocols all {clean_peer_name}"
         else:
             query = "show protocols all"
 
@@ -758,7 +756,7 @@ class PyBird:
             year = int(value)
             return datetime(year, 1, 1)
         except ValueError:
-            raise ValueError("Can not parse datetime: [%s]" % value)
+            raise ValueError(f"Can not parse datetime: [{value}]")
 
     def _remote_cmd(self, cmd, inp=None):
         to = f"{self.user}@{self.hostname}"
@@ -786,7 +784,7 @@ class PyBird:
             return
 
     def _send_query(self, query):
-        self.log.debug("PyBird: query: %s", query)
+        self.log.debug(f"PyBird: query: {query}")
         if self.hostname:
             return self._remote_query(query)
         return self._socket_query(query)

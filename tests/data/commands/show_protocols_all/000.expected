@@ -22,7 +22,12 @@
         "routes_exported": 0,
         "import_updates_rejected": 0,
         "last_change": "2010-06-29T00:00:00",
-        "import_withdraws_received": 0
+        "import_withdraws_received": 0,
+        "routes_preferred": 0,
+        "routes_filtered": 0,
+        "preference": "100",
+        "input_filter": "ACCEPT",
+        "output_filter": "ACCEPT"
     },
     {
         "router_id": "85.184.4.5",
@@ -51,6 +56,14 @@
         "routes_exported": 23,
         "import_updates_rejected": 0,
         "last_change": "2010-06-29T00:00:00",
-        "import_withdraws_received": 3
+        "import_withdraws_received": 3,
+        "routes_preferred": 0,
+        "routes_filtered": 0,
+        "route_limit": "9/1000",
+        "preference": "100",
+        "keepalive_timer": "16/60",
+        "hold_timer": "112/180",
+        "input_filter": "ACCEPT",
+        "output_filter": "ACCEPT"
     }
 ]

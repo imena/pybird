@@ -33,6 +33,12 @@ class PyBird:
         self.clean_input_re = re.compile(r"\W+")
         self.field_number_re = re.compile(r"^(\d+)[ -]")
         self.routes_field_re = re.compile(r"(\d+) imported,.* (\d+) exported")
+        
+        self.routes_field_imported_re = re.compile(r"(\d+) imported")
+        self.routes_field_exported_re = re.compile(r"(\d+) exported")
+        self.routes_field_filtered_re = re.compile(r"(\d+) filtered")
+        self.routes_field_preferred_re = re.compile(r"(\d+) preferred")
+        
         self.log = logging.getLogger(__name__)
 
     def get_config(self):
@@ -563,6 +569,12 @@ class PyBird:
             "neighbor address": "address",
             "neighbor as": "asn",
             "source address": "source",
+            "preference": "preference",
+            "input filter": "input_filter",
+            "output filter": "output_filter",
+            "route limit": "route_limit",
+            "hold timer": "hold_timer",
+            "keepalive timer": "keepalive_timer"
         }
         lineiterator = iter(peer_detail_raw)
 
@@ -576,9 +588,26 @@ class PyBird:
             value = value.strip()
 
             if field.lower() == "routes":
-                routes = self.routes_field_re.findall(value)[0]
-                result["routes_imported"] = int(routes[0])
-                result["routes_exported"] = int(routes[1])
+                result["routes_imported"] = (
+                    int(self.routes_field_imported_re.findall(value)[0])
+                    if len(self.routes_field_imported_re.findall(value)) > 0
+                    else 0
+                )
+                result["routes_exported"] = (
+                    int(self.routes_field_exported_re.findall(value)[0])
+                    if len(self.routes_field_exported_re.findall(value)) > 0
+                    else 0
+                )
+                result["routes_filtered"] = (
+                    int(self.routes_field_filtered_re.findall(value)[0])
+                    if len(self.routes_field_filtered_re.findall(value)) > 0
+                    else 0
+                )
+                result["routes_preferred"] = (
+                    int(self.routes_field_preferred_re.findall(value)[0])
+                    if len(self.routes_field_preferred_re.findall(value)) > 0
+                    else 0
+                )
 
             if field.lower() in route_change_fields:
                 (received, rejected, filtered, ignored, accepted) = value.split()

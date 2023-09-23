@@ -34,7 +34,6 @@ class PyBird:
 
         self.clean_input_re = re.compile(r"\W+")
         self.field_number_re = re.compile(r"^(\d+)[ -]")
-        self.routes_field_re = re.compile(r"(\d+) imported,.* (\d+) exported")
         
         self.routes_field_imported_re = re.compile(r"(\d+) imported")
         self.routes_field_exported_re = re.compile(r"(\d+) exported")
@@ -418,11 +417,15 @@ class PyBird:
             else:
                 # handle [BGP.atomic_aggr:]
                 key = parts[0].strip(":")
-                value = True
+                value = ""
 
             if key == "community":
                 # convert (8954,220) (8954,620) to 8954:220 8954:620
                 value = value.replace(",", ":").replace("(", "").replace(")", "")
+
+            if key == "ext_community":
+                # convert (rt, 1, 199524) to rt:1:199524
+                value = value.replace(", ", ":").replace("(", "").replace(")", "")
 
             attributes[key] = value
 

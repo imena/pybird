@@ -372,8 +372,8 @@ class PyBird:
     def _re_route_summary(self):
         return re.compile(
             r"(?P<prefix>[a-f0-9\.:\/]+)?\s+"
-            r"(?:via\s+(?P<peer>[^\s]+) on (?P<interface>[^\s]+)|(?:\w+)?)?\s*"
-            r"\[(?P<source>[^\s]+) (?P<time>[^\]\s]+)(?: from (?P<peer2>[^\s]+))?\]"
+            r"(?:via\s+(?P<peer>[^\s]+) on (?P<interface>[^\s]+)|(?:dev) (?P<local_interface>[^\s]+)|(?:\w+)?)?\s*"
+            r"\[(?P<source>[^\s]+) (?P<time>[^\]\s]+)(?: from (?P<peer2>[^\s]+))?\] (?P<best>\*)?"
         )
 
     def _parse_route_summary(self, line):
@@ -389,10 +389,18 @@ class PyBird:
         route = match.groupdict()
 
         # python regex doesn't allow group name reuse
+        if not route["interface"]:
+           route["interface"] = route.pop("local_interface")
+        else:
+            del route["local_interface"]
         if not route["peer"]:
             route["peer"] = route.pop("peer2")
         else:
             del route["peer2"]
+        if not route["best"]:
+            route["best"] = False
+        else:
+            route["best"] = True
         return route
 
     def _parse_route_detail(self, lines):

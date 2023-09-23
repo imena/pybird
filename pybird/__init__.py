@@ -387,7 +387,7 @@ class PyBird:
         as a dict. If the peer is not found, returns a zero length array.
         """
         if peer_name:
-            query = 'show protocols all "%s"' % self._clean_input(peer_name)
+            query = 'show protocols all %s' % self._clean_input(peer_name)
         else:
             query = "show protocols all"
 

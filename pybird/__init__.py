@@ -193,6 +193,29 @@ class PyBird:
             query += f" protocol {peer}"
         data = self._send_query(query)
         return self._parse_route_data(data)
+    
+    def get_routes_export(self, table=None, prefix=None, peer=None):
+        query = "show route all"
+        if table:
+            query += f" table {table}"
+        if prefix:
+            query += f" for {prefix}"
+        if peer:
+            query += f" export {peer}"
+        data = self._send_query(query)
+        return self._parse_route_data(data)
+
+    def get_routes_filtered(self, table=None, prefix=None, peer=None):
+        query = "show route all"
+        if table:
+            query += f" table {table}"
+        if prefix:
+            query += f" for {prefix}"
+        if peer:
+            query += f" protocol {peer}"
+        query += " filtered"
+        data = self._send_query(query)
+        return self._parse_route_data(data)
 
     # deprecated by get_routes_received
     def get_peer_prefixes_announced(self, peer_name):

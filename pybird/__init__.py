@@ -19,8 +19,10 @@ class PyBird:
         config_file=None,
         bird_cmd=None,
     ):
-        """Basic pybird setup.
-        Required argument: socket_file: full path to the BIRD control socket."""
+        """
+        Basic pybird setup.
+        Required argument: socket_file: full path to the BIRD control socket.
+        """
         self.socket_file = socket_file
         self.hostname = hostname
         self.user = user
@@ -38,7 +40,7 @@ class PyBird:
         self.routes_field_exported_re = re.compile(r"(\d+) exported")
         self.routes_field_filtered_re = re.compile(r"(\d+) filtered")
         self.routes_field_preferred_re = re.compile(r"(\d+) preferred")
-        
+
         self.log = logging.getLogger(__name__)
 
     def get_config(self):
@@ -55,7 +57,8 @@ class PyBird:
         return self.configure()
 
     def check_config(self):
-        """Check configuration without applying it.
+        """
+        Check configuration without applying it.
 
         Raise ValueError with the original text of the error,
         return None for success.
@@ -71,10 +74,12 @@ class PyBird:
         return None
 
     def get_bird_status(self):
-        """Get the status of the BIRD instance. Returns a dict with keys:
+        """
+        Get the status of the BIRD instance. Returns a dict with keys:
         - router_id (string)
         - last_reboot (datetime)
-        - last_reconfiguration (datetime)"""
+        - last_reconfiguration (datetime)
+        """
         query = "show status"
         data = self._send_query(query)
         if not self.socket_file:
@@ -128,7 +133,7 @@ class PyBird:
 
     def _parse_configure(self, data):
         """
-                returns error on error, None on success
+        Returns error on error, None on success
         0001 BIRD 1.4.5 ready.
         0002-Reading configuration from /home/grizz/c/20c/tstbird/dev3.conf
         8002 /home/grizz/c/20c/tstbird/dev3.conf, line 3: syntax error
@@ -143,7 +148,6 @@ class PyBird:
 
         bogus undo:
         0019 Nothing to do
-
         """
 
         for line in data.splitlines():
@@ -162,9 +166,11 @@ class PyBird:
         raise ValueError("unable to parse configure response")
 
     def _parse_router_status_line(self, line, parse_date=False):
-        """Parse a line like:
-            Current server time is 10-01-2012 10:24:37.123
-        optionally (if parse_date=True), parse it into a datetime"""
+        """
+        Parse a line like:
+        Current server time is 10-01-2012 10:24:37.123
+        optionally (if parse_date=True), parse it into a datetime
+        """
         data = line.strip().split(" ", 3)[-1]
         if parse_date:
             data = data.split(".")[0]
@@ -190,6 +196,9 @@ class PyBird:
             raise ValueError(err)
 
     def get_routes(self, table=None, prefix=None, peer=None):
+        """
+        Get all routes, or optionally for a specific table, prefix or peer.
+        """
         query = "show route all"
         if table:
             query += f" table {table}"
@@ -201,6 +210,9 @@ class PyBird:
         return self._parse_route_data(data)
     
     def get_routes_export(self, table=None, prefix=None, peer=None):
+        """
+        Get all routes, or optionally for a specific table, prefix which exported to peer.
+        """
         query = "show route all"
         if table:
             query += f" table {table}"
@@ -212,6 +224,9 @@ class PyBird:
         return self._parse_route_data(data)
 
     def get_routes_filtered(self, table=None, prefix=None, peer=None):
+        """
+        Get all routes, or optionally for a specific table, prefix which filtered from peer.
+        """
         query = "show route all"
         if table:
             query += f" table {table}"
@@ -225,8 +240,10 @@ class PyBird:
 
     # deprecated by get_routes_received
     def get_peer_prefixes_announced(self, peer_name):
-        """Get prefixes announced by a specific peer, without applying
-        filters - i.e. this includes routes which were not accepted"""
+        """
+        Get prefixes announced by a specific peer, without applying
+        filters - i.e. this includes routes which were not accepted
+        """
         clean_peer_name = self._clean_input(peer_name)
         query = "show route table T_{} all protocol {}".format(
             clean_peer_name, clean_peer_name
@@ -238,7 +255,9 @@ class PyBird:
         return self.get_peer_prefixes_announced(peer)
 
     def get_peer_prefixes_exported(self, peer_name):
-        """Get prefixes exported TO a specific peer"""
+        """
+        Get prefixes exported TO a specific peer
+        """
         clean_peer_name = self._clean_input(peer_name)
         query = "show route all table T_{} export {}".format(
             clean_peer_name, clean_peer_name
@@ -249,8 +268,10 @@ class PyBird:
         return self._parse_route_data(data)
 
     def get_peer_prefixes_accepted(self, peer_name):
-        """Get prefixes announced by a specific peer, which were also
-        accepted by the filters"""
+        """
+        Get prefixes announced by a specific peer, which were also
+        accepted by the filters
+        """
         query = "show route all protocol %s" % self._clean_input(peer_name)
         data = self._send_query(query)
         return self._parse_route_data(data)
@@ -271,7 +292,9 @@ class PyBird:
         return rejected_routes
 
     def get_prefix_info(self, prefix, peer_name=None):
-        """Get route-info for specified prefix"""
+        """
+        Get route-info for specified prefix
+        """
         query = "show route for %s all" % prefix
         if peer_name is not None:
             query += " protocol %s" % peer_name
@@ -281,7 +304,8 @@ class PyBird:
         return self._parse_route_data(data)
 
     def _parse_route_data(self, data):
-        """Parse a blob like:
+        """
+        Parse a blob like:
         0001 BIRD 1.3.3 ready.
         1007-2a02:898::/32      via 2001:7f8:1::a500:8954:1 on eth1 [PS2 12:46] * (100) [AS8283i]
         1008-   Type: BGP unicast univ
@@ -357,7 +381,8 @@ class PyBird:
         )
 
     def _parse_route_summary(self, line):
-        """Parse a line like:
+        """
+        Parse a line like:
         2a02:898::/32      via 2001:7f8:1::a500:8954:1 on eth1 [PS2 12:46] * (100) [AS8283i]
         """
         match = self._re_route_summary().match(line)
@@ -375,7 +400,8 @@ class PyBird:
         return route
 
     def _parse_route_detail(self, lines):
-        """Parse a blob like:
+        """
+        Parse a blob like:
         1012-   BGP.origin: IGP
             BGP.as_path: 8954 8283
             BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
@@ -406,7 +432,8 @@ class PyBird:
         return attributes
 
     def get_peer_status(self, peer_name=None):
-        """Get the status of all peers or a specific peer.
+        """
+        Get the status of all peers or a specific peer.
 
         Optional argument: peer_name: case-sensitive full name of a peer,
         as configured in BIRD.
@@ -441,7 +468,9 @@ class PyBird:
             return peers[0]
 
     def _parse_peer_data(self, data, data_contains_detail):
-        """Parse the data from BIRD to find peer information."""
+        """
+        Parse the data from BIRD to find peer information.
+        """
         lineiterator = iter(data.splitlines())
         peers = []
 
@@ -489,13 +518,13 @@ class PyBird:
         return peers
 
     def _parse_peer_summary(self, line):
-        """Parse the summary of a peer line, like:
+        """
+        Parse the summary of a peer line, like:
         PS1      BGP      T_PS1    start  Jun13       Passive
 
         Returns a dict with the fields:
             name, protocol, last_change, state, up
             ("PS1", "BGP", "Jun13", "Passive", False)
-
         """
         elements = line.split()
 
@@ -523,7 +552,8 @@ class PyBird:
         }
 
     def _parse_peer_detail(self, peer_detail_raw):
-        """Parse the detailed peer information from BIRD, like:
+        """
+        Parse the detailed peer information from BIRD, like:
 
         1006-  Description:    Peering AS8954 - InTouch
           Preference:     100
@@ -553,7 +583,6 @@ class PyBird:
             and all combinations of:
             [import,export]_[updates,withdraws]_[received,rejected,filtered,ignored,accepted]
             wfor which the value above is not "---"
-
         """
         result = {}
 
@@ -629,7 +658,8 @@ class PyBird:
         result_dict[key_name] = int(value)
 
     def _extract_field_number(self, line):
-        """Parse the field type number from a line.
+        """
+        Parse the field type number from a line.
         Line must start with a number, followed by a dash or space.
 
         Returns a tuple of (field_number, cleaned_line), where field_number
@@ -646,7 +676,9 @@ class PyBird:
             return (None, line)
 
     def _calculate_datetime(self, value, now=None):
-        """Turn the BIRD date format into a python datetime."""
+        """
+        Turn the BIRD date format into a python datetime.
+        """
 
         if not now:
             now = datetime.now()
@@ -769,7 +801,8 @@ class PyBird:
         return res.decode("utf-8")
 
     def _socket_query(self, query):
-        """Open a socket to the BIRD control socket, send the query and get
+        """
+        Open a socket to the BIRD control socket, send the query and get
         the response.
         """
         if not isinstance(query, bytes):
@@ -803,6 +836,8 @@ class PyBird:
         return b"".join(data).decode("utf-8")
 
     def _clean_input(self, inp):
-        """Clean the input string of anything not plain alphanumeric chars,
-        return the cleaned string."""
+        """
+        Clean the input string of anything not plain alphanumeric chars,
+        return the cleaned string.
+        """
         return self.clean_input_re.sub("", inp).strip()

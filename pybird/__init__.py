@@ -206,7 +206,7 @@ class PyBird:
         if peer:
             query += f" protocol {peer}"
         data = self._send_query(query)
-        return self._parse_route_data(data)
+        return self._parse_route_data_v2(data)
     
     def get_routes_export(self, peer, table=None, prefix=None):
         """
@@ -219,7 +219,7 @@ class PyBird:
             query += f" for {prefix}"
         query += f" export {peer}"
         data = self._send_query(query)
-        return self._parse_route_data(data)
+        return self._parse_route_data_v2(data)
 
     def get_routes_filtered(self, table=None, prefix=None, peer=None):
         """
@@ -234,7 +234,7 @@ class PyBird:
             query += f" protocol {peer}"
         query += " filtered"
         data = self._send_query(query)
-        return self._parse_route_data(data)
+        return self._parse_route_data_v2(data)
 
     # deprecated by get_routes_received
     def get_peer_prefixes_announced(self, peer_name):

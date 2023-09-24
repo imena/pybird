@@ -9,7 +9,8 @@
         "time": "2016-07-24",
         "peer": null,
         "local_pref": "100",
-        "interface": null
+        "interface": null,
+        "best": true
     },
     {
         "origin": "IGP",
@@ -21,7 +22,8 @@
         "time": "2016-09-10",
         "peer": null,
         "local_pref": "100",
-        "interface": null
+        "interface": null,
+        "best": true
     },
     {
         "origin": "IGP",
@@ -33,6 +35,7 @@
         "time": "2016-07-24",
         "peer": null,
         "local_pref": "100",
-        "interface": null
+        "interface": null,
+        "best": true
     }
 ]

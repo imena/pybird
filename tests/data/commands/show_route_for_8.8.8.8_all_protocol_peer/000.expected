@@ -10,6 +10,7 @@
         "time": "2016-09-16",
         "peer": "206.41.110.37",
         "local_pref": "200",
-        "interface": "bond0.895"
+        "interface": "bond0.895",
+        "best": false
     }
 ]

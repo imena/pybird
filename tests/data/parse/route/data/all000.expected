@@ -9,6 +9,7 @@
         "time": "2017-01-15",
         "peer": "10.203.0.143",
         "local_pref": "100",
-        "interface": null
+        "interface": null,
+        "best": true
     }
 ]

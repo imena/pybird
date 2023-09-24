@@ -9,6 +9,7 @@
         "time": "12:46",
         "peer": "2001:7f8:1::a500:8954:1",
         "local_pref": "100",
-        "interface": "eth1"
+        "interface": "eth1",
+        "best": true
     }
 ]

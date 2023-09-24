@@ -1,0 +1,36 @@
+0001 BIRD 1.6.8 ready.
+1007-1.1.1.0/24     via 10.0.0.10 on v10 [peer1 2023-09-22] * (100) [AS10010i]
+1008-   Type: BGP unicast univ
+1012-   BGP.origin: IGP
+        BGP.as_path: 10010
+        BGP.next_hop: 10.0.0.10
+        BGP.med: 1779
+        BGP.local_pref: 100
+        BGP.community: (0,12989) (0,13188)
+1007-2.2.2.0/24     via 10.0.0.20 on v10 [peer20 2023-08-29] * (100) [AS10020e]
+1008-   Type: BGP unicast univ
+1012-   BGP.origin: EGP
+        BGP.as_path: 10020
+        BGP.next_hop: 10.0.0.20
+        BGP.med: 0
+        BGP.local_pref: 100
+        BGP.community: (65535,64526) (65535,64520) (65535,11804)
+1007-                   via 10.0.0.21 on v10 [peer21 2023-07-29] (100) [AS10020e]
+1008-   Type: BGP unicast univ
+1012-   BGP.origin: EGP
+        BGP.as_path: 10020
+        BGP.next_hop: 10.0.0.21
+        BGP.med: 0
+        BGP.local_pref: 100
+        BGP.community: (65535,64526) (65535,64520)
+1007-10.0.0.0/23      dev v10 [direct1 2023-03-16] * (240)
+1008-   Type: device unicast univ
+1007-3.3.3.0/24     via 10.0.0.10 on v10 [peer20 2023-08-29] * (100) [AS10010i]
+1008-   Type: BGP unicast univ
+1012-   BGP.origin: EGP
+        BGP.as_path: 10010
+        BGP.next_hop: 10.0.0.10
+        BGP.med: 0
+        BGP.local_pref: 100
+        BGP.community: (rt,0,10010) (0,13188)
+0000

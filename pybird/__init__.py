@@ -208,7 +208,7 @@ class PyBird:
         data = self._send_query(query)
         return self._parse_route_data(data)
     
-    def get_routes_export(self, table=None, prefix=None, peer=None):
+    def get_routes_export(self, peer, table=None, prefix=None):
         """
         Get all routes, or optionally for a specific table, prefix which exported to peer.
         """
@@ -217,8 +217,7 @@ class PyBird:
             query += f" table {table}"
         if prefix:
             query += f" for {prefix}"
-        if peer:
-            query += f" export {peer}"
+        query += f" export {peer}"
         data = self._send_query(query)
         return self._parse_route_data(data)
 
@@ -362,6 +361,92 @@ class PyBird:
                 # Do not use this summary again on the next run
                 route_summary = None
                 routes.append(route_detail)
+
+            if field_number == 8001:
+                # network not in table
+                return []
+
+        return routes
+
+    def _parse_route_data_v2(self, data):
+        """
+        Parse a blob like:
+        0001 BIRD 1.3.3 ready.
+        1007-2a02:898::/32      via 2001:7f8:1::a500:8954:1 on eth1 [PS2 12:46] * (100) [AS8283i]
+        1008-   Type: BGP unicast univ
+        1012-   BGP.origin: IGP
+            BGP.as_path: 8954 8283
+            BGP.next_hop: 2001:7f8:1::a500:8954:1 fe80::21f:caff:fe16:e02
+            BGP.local_pref: 100
+            BGP.community: (8954,620)
+        [....]
+        1007-185.1.62.0/23      dev vlan65 [direct1 2023-03-16] * (240)
+        1008-	Type: device unicast univ
+        [....]
+        0000
+        """
+        data_lines = data.splitlines()
+        
+        routes = []
+        route_process = {}
+        prev_route = ""
+
+        for source_line in data_lines:
+            (field_number, line) = self._extract_field_number(source_line)
+
+            if field_number == 0:
+                # end of data
+                if len(route_process) > 0:
+                    routes.append(route_process)
+                    continue
+
+            if field_number in self.ignored_field_numbers:
+                continue
+
+            if field_number == 1007:
+                if len(route_process) > 0:
+                    routes.append(route_process)
+                    route_process = {}
+
+                route_process = self._parse_route_summary(line)
+
+                if route_process["prefix"] is not None:
+                    prev_route = route_process["prefix"]
+                else:
+                    route_process["prefix"] = prev_route
+
+            if field_number == 1008:
+                route_process.update(self._parse_route_type(line))
+
+            if field_number == 1012 or "BGP." in line:
+                if route_process["type"] != "BGP":
+                    continue
+                
+                if "BGP" not in route_process:
+                    route_process["BGP"] = {}
+                line = line.strip()
+                # remove 'BGP.'
+                line = line[4:]
+                parts = line.split(": ")
+                attributes = {}
+                if len(parts) == 2:
+                    (key, value) = parts
+                else:
+                    # handle [BGP.atomic_aggr:] or any other case where there is no value
+                    # sometimes there is no value and we return an empty string
+                    key = parts[0].strip(":")
+                    value = ""
+
+                if key == "community":
+                    # convert (8954,220) (8954,620) to 8954:220 8954:620
+                    value = value.replace(",", ":").replace("(", "").replace(")", "")
+
+                if key == "ext_community":
+                    # convert (rt, 1, 199524) to rt:1:199524
+                    value = value.replace(", ", ":").replace("(", "").replace(")", "")
+
+                attributes[key] = value
+                route_process["BGP"].update(attributes)
 
             if field_number == 8001:
                 # network not in table

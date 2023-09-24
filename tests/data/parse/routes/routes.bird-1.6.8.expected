@@ -1,0 +1,70 @@
+[
+    {
+        "prefix": "1.1.1.0/24",
+        "peer": "10.0.0.10",
+        "interface": "v10",
+        "source": "peer1",
+        "time": "2023-09-22",
+        "best": true,
+        "type": "BGP",
+        "scope": "unicast",
+        "family": "univ",
+        "BGP": {
+            "origin": "IGP",
+            "as_path": "10010",
+            "next_hop": "10.0.0.10",
+            "med": "1779",
+            "local_pref": "100",
+            "community": "0:12989 0:13188"
+        }
+    },
+    {
+        "prefix": "2.2.2.0/24",
+        "peer": "10.0.0.20",
+        "interface": "v10",
+        "source": "peer20",
+        "time": "2023-08-29",
+        "best": true,
+        "type": "BGP",
+        "scope": "unicast",
+        "family": "univ",
+        "BGP": {
+            "origin": "EGP",
+            "as_path": "10020",
+            "next_hop": "10.0.0.20",
+            "med": "0",
+            "local_pref": "100",
+            "community": "65535:64526 65535:64520 65535:11804"
+        }
+    },
+    {
+        "prefix": "2.2.2.0/24",
+        "peer": "10.0.0.21",
+        "interface": "v10",
+        "source": "peer21",
+        "time": "2023-07-29",
+        "best": false,
+        "type": "BGP",
+        "scope": "unicast",
+        "family": "univ",
+        "BGP": {
+            "origin": "EGP",
+            "as_path": "10020",
+            "next_hop": "10.0.0.21",
+            "med": "0",
+            "local_pref": "100",
+            "community": "65535:64526 65535:64520"
+        }
+    },
+    {
+        "prefix": "10.0.0.0/23",
+        "peer": null,
+        "interface": "v10",
+        "source": "direct1",
+        "time": "2023-03-16",
+        "best": true,
+        "type": "device",
+        "scope": "unicast",
+        "family": "univ"
+    }
+]

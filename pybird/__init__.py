@@ -422,6 +422,10 @@ class PyBird:
         match = rs.match(line)
         result = match.groupdict()
 
+        if result["atribute"] == "as-path":
+            # convert as-path to list
+            value = result["value"]
+            result["value"] = value.split(" ")
         if result["atribute"] == "community":
             # convert (8954,220) (8954,620) to 8954:220 8954:620
             value = result["value"].replace(",", ":").replace("(", "").replace(")", "")

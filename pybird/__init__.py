@@ -425,11 +425,11 @@ class PyBird:
         if result["atribute"] == "community":
             # convert (8954,220) (8954,620) to 8954:220 8954:620
             value = result["value"].replace(",", ":").replace("(", "").replace(")", "")
-            result["value"] = value
+            result["value"] = value.split(" ")
         if result["atribute"] == "ext_community":
             # convert (rt, 1, 199524) to rt:1:199524
             value = result["value"].replace(", ", ":").replace("(", "").replace(")", "")
-            result["value"] = value
+            result["value"] = value.split(" ")
 
         return result
 

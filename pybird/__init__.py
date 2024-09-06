@@ -422,7 +422,7 @@ class PyBird:
         match = rs.match(line)
         result = match.groupdict()
 
-        if result["atribute"] == "as-path":
+        if result["atribute"] == "as_path":
             # convert as-path to list
             value = result["value"]
             result["value"] = value.split(" ")

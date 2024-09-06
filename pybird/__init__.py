@@ -304,7 +304,9 @@ class PyBird:
                     continue
 
                 data = self._parse_route_detail(line)
-                if data["proto"] in route_summary:
+                if data is None:
+                    continue
+                elif data["proto"] in route_summary:
                     route_summary[data["proto"]][data["atribute"]] = data["value"]
                 else:
                     route_summary[data["proto"]] = {}
@@ -415,11 +417,17 @@ class PyBird:
             BGP.local_pref: 100
             BGP.community: (8954,620)
         """
-        rs = re.compile(
-            r"^(?:(?P<proto>[\w]+))\.(?:(?P<atribute>[\w]+))(?:\:[\s]+(?P<value>[\s\w\W]+)?)"
-        )
+        # parsing line like: "BGP.23 [t]: 00 00 c9 fa"
+        # this means unknown attribute with value 00 00 c9 fa
+        rs = re.compile(r"^(?:(?P<proto>[\w]+))\.(?:(?P<atribute>[\w]+))(?:[\w\s\[\]]+)?\:(?:[\s]+(?P<value>[\s\w\W]+)?)?")
 
         match = rs.match(line)
+        if match is None:
+            # sometimes long attribute values are split into multiple lines
+            # for now don't handle this case
+            self.log.debug("PyBird: unable _parse_route_detail from line: ", line)
+            return None
+        
         result = match.groupdict()
 
         if result["atribute"] == "as_path":

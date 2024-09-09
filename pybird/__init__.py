@@ -203,6 +203,33 @@ class PyBird:
             query += f" protocol {peer}"
         data = self._send_query(query)
         return self._parse_route_data(data)
+    
+    def get_routes_bgpcommunity(self, community, table=None, peer=None, detail=False, best=False):
+        """
+        Get routes by BGP community.
+        community should be in format '8954,620' or 'rt,1,199524'
+        """
+        query = "show route"
+        if detail:
+            query += " all "
+        if best:
+            query += " primary"
+        if table:
+            query += f" table {table}"
+        if peer:
+            query += f" protocol {peer}"
+
+        if community.count(",") < 1 > 2:
+            logging.error("PyBird: invalid community format")
+            return []
+
+        if len(community.split(",")) == 2:
+            query += f" where ({community}) ~ bgp_community"
+        if len(community.split(",")) == 3:
+            query += f" where ({community}) ~ bgp_ext_community"
+
+        data = self._send_query(query)
+        return self._parse_route_data(data)
 
     def get_routes_export(self, peer, table=None, prefix=None, detail=False):
         """

@@ -6,7 +6,8 @@ from subprocess import PIPE, Popen
 
 
 class PyBird:
-    # BIRD reply codes: https://github.com/CZ-NIC/bird/blob/6c11dbcf28faa145cfb7310310a2a261fd4dd1f2/doc/reply_codes
+    # BIRD reply codes:
+    # https://github.com/CZ-NIC/bird/blob/6c11dbcf28faa145cfb7310310a2a261fd4dd1f2/doc/reply_codes
     ignored_field_numbers = (0, 1, 13, 2002, 9001)
     error_fields = (13, 19, 8001, 8002, 8003, 9000, 9001, 9002)
     success_fields = (0, 3, 4, 18, 20)
@@ -29,17 +30,10 @@ class PyBird:
 
         self.log = logging.getLogger(__name__)
 
-    def get_config(self):
-        if not self.config_file:
-            raise ValueError("config_file is not set")
-        return self._read_file(self.config_file)
-
-    def put_config(self, data):
-        if not self.config_file:
-            raise ValueError("config_file is not set")
-        return self._write_file(data, self.config_file)
-
     def commit_config(self):
+        """
+        Commit the configuration to the BIRD instance.
+        """
         return self.configure()
 
     def check_config(self):
@@ -168,14 +162,12 @@ class PyBird:
         else:
             return data
 
-    def configure(self, soft=False, timeout=0):
+    def configure(self):
         """
         birdc configure command
         """
         query = "configure"
         data = self._send_query(query)
-        if not self.socket_file:
-            return data
 
         err = self._parse_configure(data)
         if err:
@@ -203,7 +195,7 @@ class PyBird:
             query += f" protocol {peer}"
         data = self._send_query(query)
         return self._parse_route_data(data)
-    
+
     def get_routes_bgpcommunity(self, community, table=None, peer=None, detail=False, best=False):
         """
         Get routes by BGP community.
@@ -284,7 +276,7 @@ class PyBird:
         bird2route = re.compile(r"([\sa-f0-9\.:\/]+)?(?:unicast|blackhole)\s+\[")
 
         self.log.debug("PyBird: parse route data: lines=%d", len(lines))
-        route_summary = dict()
+        route_summary = {}
         prev_prefix = None
         counter = -1
         prev_number = 1007
@@ -307,12 +299,12 @@ class PyBird:
                     continue
 
                 if  bird2route.match(line):
-                   # print("bird 2: ", line, lines[counter+1])
-                   route_summary = self._parse_route_summary_bird2([line, lines[counter+1]])
+                    # print("bird 2: ", line, lines[counter+1])
+                    route_summary = self._parse_route_summary_bird2([line, lines[counter+1]])
 
                 if bird1route.match(line):
-                   # print("bird 1: ", line)
-                   route_summary = self._parse_route_summary_bird1(line)
+                    # print("bird 1: ", line)
+                    route_summary = self._parse_route_summary_bird1(line)
 
                 if "prefix" in route_summary:
                     if route_summary["prefix"] is None:
@@ -395,7 +387,7 @@ class PyBird:
         rs1 = re.compile(r"(?:^\s+via\s+(?P<peer>[a-f0-9\.:\/]+)\s+on\s+|^\s+dev\s+)(?P<interface>[\w]+)")
 
         if len(line) < 2:
-            raise ValueError(f"bird2 should have route in 2 lines")
+            raise ValueError("bird2 should have route in 2 lines")
         match0 = rs0.match(line[0])
         match1 = rs1.match(line[1])
         if not match0:
@@ -452,9 +444,9 @@ class PyBird:
         if match is None:
             # sometimes long attribute values are split into multiple lines
             # for now don't handle this case
-            self.log.debug("PyBird: unable _parse_route_detail from line: ", line)
+            self.log.debug("PyBird: unable _parse_route_detail from line: %s", line)
             return None
-        
+
         result = match.groupdict()
 
         if result["atribute"] == "as_path":
@@ -471,23 +463,23 @@ class PyBird:
             result["value"] = value.split(" ")
 
         return result
-    
+
     def get_symbols(self, name):
         """
         Get the list of a symbols configured in BIRD.
         Available request names: table, filter, function, protocol, template, roa, symbol
         """
         names = ["table", "filter", "function", "protocol", "template", "roa", "symbol"]
-        
+
         if name not in names:
             self.log.debug("PyBird: get_symbols name '%s' not correct. Available choises: %s", name,names)
             return []
-        
+
         query = f"show symbols {name}"
         data = self._send_query(query)
-        
+
         return self._parse_symbols(data)
-    
+
     def _parse_symbols(self, data):
         """ 
         Parse the data from BIRD to find symbols information:
@@ -497,17 +489,17 @@ class PyBird:
         """
         lines = iter(data.splitlines())
         result = []
-        
+
         for line in lines:
             line = line.strip()
             (number, line) = self._extract_field_number(line)
-            
+
             if number == 1:
                 continue
-            
+
             if line == "0000" or number == 0:
                 return result
-            
+
             if number == 1010 or number is None:
                 result.append(line.split()[0])
 
@@ -526,28 +518,17 @@ class PyBird:
         If a peer_name argument is given, returns a single peer, represented
         as a dict. If the peer is not found, returns a zero length array.
         """
+        query = "show protocols all"
         if peer_name:
-            query = 'show protocols all %s' % peer_name
-        else:
-            query = "show protocols all"
+            query += f' {peer_name}'
 
         data = self._send_query(query)
-        if not self.socket_file:
-            return data
-
         peers = self._parse_peer_data(data=data, data_contains_detail=True)
 
         if not peer_name:
             return peers
 
-        if len(peers) == 0:
-            return []
-        elif len(peers) > 1:
-            raise ValueError(
-                "Searched for a specific peer, but got multiple returned from BIRD?"
-            )
-        else:
-            return peers[0]
+        return peers[0]
 
     def _parse_peer_data(self, data, data_contains_detail):
         """
@@ -571,10 +552,9 @@ class PyBird:
                     peer_summary = None
                     continue
 
-            # If there is no detail section to be expected,
-            # we are done.
+            # If there is no detail section to be expected, we are done.
             if not data_contains_detail:
-                peers.append_peer_summary()
+                peers.append(peer_summary)
                 continue
 
             peer_detail = None
@@ -734,7 +714,7 @@ class PyBird:
                 self._parse_route_stats(result, key_name_base + "_ignored", ignored)
                 self._parse_route_stats(result, key_name_base + "_accepted", accepted)
 
-            if field.lower() in field_map.keys():
+            if field.lower() in field_map:
                 result[field_map[field.lower()]] = value
 
         return result
@@ -759,8 +739,8 @@ class PyBird:
             field_number = int(matches[0])
             cleaned_line = self.field_number_re.sub("", line).strip("-")
             return (field_number, cleaned_line.strip())
-        else:
-            return (None, line.strip())
+
+        return (None, line.strip())
 
     def _calculate_datetime(self, value, now=None):
         """
@@ -845,7 +825,7 @@ class PyBird:
             year = int(value)
             return datetime(year, 1, 1).strftime('%m/%d/%Y %H:%M:%S')
         except ValueError:
-            raise ValueError("Can not parse datetime: [%s]" % value)
+            raise ValueError(f"Can not parse datetime: [{value}]") from ValueError
 
     def _send_query(self, query):
         """

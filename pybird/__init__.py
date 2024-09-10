@@ -471,6 +471,47 @@ class PyBird:
             result["value"] = value.split(" ")
 
         return result
+    
+    def get_symbols(self, name):
+        """
+        Get the list of a symbols configured in BIRD.
+        Available request names: table, filter, function, protocol, template, roa, symbol
+        """
+        names = ["table", "filter", "function", "protocol", "template", "roa", "symbol"]
+        
+        if name not in names:
+            self.log.debug("PyBird: get_symbols name '%s' not correct. Available choises: %s", name,names)
+            return []
+        
+        query = f"show symbols {name}"
+        data = self._send_query(query)
+        
+        return self._parse_symbols(data)
+    
+    def _parse_symbols(self, data):
+        """ 
+        Parse the data from BIRD to find symbols information:
+        0001 BIRD 2.0.8 ready.
+        1010-master4    routing table
+             master6    routing table
+        """
+        lines = iter(data.splitlines())
+        result = []
+        
+        for line in lines:
+            line = line.strip()
+            (number, line) = self._extract_field_number(line)
+            
+            if number == 1:
+                continue
+            
+            if line == "0000" or number == 0:
+                return result
+            
+            if number == 1010 or number is None:
+                result.append(line.split()[0])
+
+        return result
 
     def get_peer_status(self, peer_name=None):
         """

@@ -299,7 +299,7 @@ class PyBird:
 
             if number == 1007:
                 # command last line
-                if len(route_summary) > 0:
+                if route_summary:
                     routes.append(route_summary)
                     route_summary = {}
 
@@ -323,7 +323,7 @@ class PyBird:
             if number == 1008:
                 route_summary.update(self._parse_route_type(line))
 
-            if number == 0:
+            if number == 0 and route_summary:
                 routes.append(route_summary)
 
             if number == 1012:
